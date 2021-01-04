@@ -1,0 +1,12 @@
+language: python
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
+before_install:
+  - pip install poetry
+install:
+  - poetry install
+script: poetry run pytest --cov=ricks_auth_service_client
+after_success: bash <(curl -s https://codecov.io/bash)
