@@ -84,5 +84,5 @@ class AuthClient:
                 data = await response.json()
                 try:
                     return {"id_token": data["idToken"]}
-                except KeyError:
+                except (KeyError, TypeError):
                     raise AuthClientError("idToken was not in response")

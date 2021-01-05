@@ -1,6 +1,3 @@
-import re
-from urllib.parse import quote_plus
-
 import pytest
 from aioresponses import aioresponses
 
@@ -10,6 +7,7 @@ from ricks_auth_service_client import (
     ServerError,
     ValidationError,
     AuthenticationFailure,
+    AuthClientError,
 )
 
 
@@ -148,4 +146,35 @@ async def test_submit_code_authentication_failed(mock_aioresponse, auth_client, 
     )
 
     with pytest.raises(AuthenticationFailure):
+        await auth_client.submit_code(fake_email, test_code)
+
+
+@pytest.mark.asyncio
+async def test_submit_code_missing_response_from_server(
+    mock_aioresponse, auth_client, faker
+):
+    fake_email = faker.email()
+    test_code = "11111111"
+    mock_aioresponse.post(
+        f"{auth_client.host}/otp/confirm/{auth_client.app_id}",
+        status=200,
+    )
+
+    with pytest.raises(AuthClientError):
+        await auth_client.submit_code(fake_email, test_code)
+
+
+@pytest.mark.asyncio
+async def test_submit_code_missing_token_in_response(
+    mock_aioresponse, auth_client, faker
+):
+    fake_email = faker.email()
+    test_code = "11111111"
+    mock_aioresponse.post(
+        f"{auth_client.host}/otp/confirm/{auth_client.app_id}",
+        status=200,
+        payload={"nothing": "useful"},
+    )
+
+    with pytest.raises(AuthClientError):
         await auth_client.submit_code(fake_email, test_code)
