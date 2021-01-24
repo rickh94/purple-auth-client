@@ -65,16 +65,9 @@ class AuthClient:
         """
         if flow not in ALLOWED_FLOWS:
             raise InvalidAuthFlow
-        return await perform_post(
+        return await _perform_post(
             f"{self.host}/{flow}/request/{self.app_id}", {"email": email}
         )
-        # async with aiohttp.ClientSession() as session:
-        #     async with session.post(
-        #         f"{self.host}/{flow}/request/{self.app_id}",
-        #         json={"email": email},
-        #     ) as response:
-        #         _check_response(response)
-        #         return await response.json()
 
     async def submit_code(self, email: str, code) -> Dict[str, str]:
         """Submit an authentication code and get a token back
@@ -88,7 +81,7 @@ class AuthClient:
         :raises ValidationError: if something is wrong with the request data.
         :raises AuthenticationFailure: if the email code combination doesn't authenticate.
         """
-        data = await perform_post(
+        data = await _perform_post(
             f"{self.host}/otp/confirm/{self.app_id}", {"email": email, "code": code}
         )
         try:
@@ -99,7 +92,7 @@ class AuthClient:
         except (KeyError, TypeError):
             raise AuthClientError("idToken was not in response")
 
-    async def verify_token_remote(self, id_token) -> Dict[str, dict]:
+    async def verify_token_remote(self, id_token: str) -> Dict[str, dict]:
         """Request the server to verify an idToken for you.
         :param id_token: JWT idToken from client
 
@@ -109,15 +102,45 @@ class AuthClient:
         :raises AppNotFound: Not found from server, the app does not exist.
         :raises ServerError: The server experienced an error.
         """
-        data = await perform_post(
+        data = await _perform_post(
             f"{self.host}/token/verify/{self.app_id}", {"idToken": id_token}
         )
         if not data or "headers" not in data or "claims" not in data:
-            raise AuthenticationFailure
+            raise AuthenticationFailure("Data missing from response")
         return data
 
+    async def refresh(self, refresh_token: str) -> str:
+        """Request a new ID Token using a refresh token.
+        :param refresh_token: Refresh token from a client.
 
-async def perform_post(url: str, body: dict):
+        :returns: New ID Token
+        :raises ValidationError: If the request was invalid in some way
+        :raises AuthenticationFailure: If the token could not be verified
+        :raises AppNotFound: Not found from server, the app does not exist.
+        :raises ServerError: The server experienced an error.
+        """
+        data = await _perform_post(
+            f"{self.host}/token/refresh/{self.app_id}", {"refreshToken": refresh_token}
+        )
+        try:
+            return data["idToken"]
+        except (TypeError, KeyError):
+            raise AuthenticationFailure("ID token not in response")
+
+    async def app_info(self) -> dict:
+        """Get full info about this app
+        :returns: dict of info about the app
+
+        :raises AppNotFound: Not found from server, the app does not exist.
+        :raises ServerError: The server experienced an error.
+        """
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{self.host}/app/{self.app_id}") as response:
+                _check_response(response)
+                return await response.json()
+
+
+async def _perform_post(url: str, body: dict):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=body) as response:
             _check_response(response)

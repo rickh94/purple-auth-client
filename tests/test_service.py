@@ -30,6 +30,11 @@ def fake_email():
 
 
 @pytest.fixture
+def fake_name():
+    return Faker().company()
+
+
+@pytest.fixture
 def test_code():
     return "11111111"
 
@@ -37,6 +42,11 @@ def test_code():
 @pytest.fixture
 def fake_token():
     return "this-is-a-fake-jwt"
+
+
+@pytest.fixture
+def fake_refresh_token():
+    return "this-is-a-fake-refresh-token"
 
 
 def test_create():
@@ -337,3 +347,139 @@ async def test_verify_remote_server_error(mock_aioresponse, auth_client, fake_to
 
     with pytest.raises(ServerError):
         await auth_client.verify_token_remote(fake_token)
+
+
+@pytest.mark.asyncio
+async def test_refresh_token(
+    mock_aioresponse, auth_client, fake_token, fake_refresh_token
+):
+    mock_aioresponse.post(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=200,
+        payload={"idToken": fake_token, "refreshToken": fake_refresh_token},
+    )
+
+    result = await auth_client.refresh(fake_refresh_token)
+
+    assert result == fake_token
+
+    request_args = list(mock_aioresponse.requests.values())[0][0].kwargs
+    assert request_args["json"]["refreshToken"] == fake_refresh_token
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_failure(mock_aioresponse, auth_client, fake_refresh_token):
+    mock_aioresponse.post(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=401,
+    )
+
+    with pytest.raises(AuthenticationFailure):
+        await auth_client.refresh(fake_refresh_token)
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_no_response_from_server(
+    mock_aioresponse, auth_client, fake_refresh_token
+):
+    mock_aioresponse.post(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=200,
+    )
+
+    with pytest.raises(AuthenticationFailure):
+        await auth_client.refresh(fake_refresh_token)
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_invalid_response_from_server(
+    mock_aioresponse, auth_client, fake_refresh_token
+):
+    mock_aioresponse.post(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=200,
+        payload={"random": "nonsense"},
+    )
+
+    with pytest.raises(AuthenticationFailure):
+        await auth_client.refresh(fake_refresh_token)
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_not_found(
+    mock_aioresponse, auth_client, fake_refresh_token
+):
+    mock_aioresponse.post(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=404,
+    )
+
+    with pytest.raises(AppNotFound):
+        await auth_client.refresh(fake_refresh_token)
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_validation_error(
+    mock_aioresponse, auth_client, fake_refresh_token
+):
+    mock_aioresponse.post(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=422,
+    )
+
+    with pytest.raises(ValidationError):
+        await auth_client.refresh(fake_refresh_token)
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_server_error(
+    mock_aioresponse, auth_client, fake_refresh_token
+):
+    mock_aioresponse.post(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=500,
+    )
+
+    with pytest.raises(ServerError):
+        await auth_client.refresh(fake_refresh_token)
+
+
+@pytest.mark.asyncio
+async def test_app_info(mock_aioresponse, auth_client, fake_name):
+    mock_aioresponse.get(
+        f"{auth_client.host}/app/{auth_client.app_id}",
+        status=200,
+        payload={
+            "name": fake_name,
+            "app_id": auth_client.app_id,
+            "redirect_url": "https://redirect.example.com",
+        },
+    )
+
+    result = await auth_client.app_info()
+
+    assert result["name"] == fake_name
+    assert result["app_id"] == auth_client.app_id
+    assert result["redirect_url"] == "https://redirect.example.com"
+
+
+@pytest.mark.asyncio
+async def test_app_info_not_found(mock_aioresponse, auth_client):
+    mock_aioresponse.get(
+        f"{auth_client.host}/app/{auth_client.app_id}",
+        status=404,
+    )
+
+    with pytest.raises(AppNotFound):
+        await auth_client.app_info()
+
+
+@pytest.mark.asyncio
+async def test_app_info_server_error(mock_aioresponse, auth_client):
+    mock_aioresponse.get(
+        f"{auth_client.host}/app/{auth_client.app_id}",
+        status=500,
+    )
+
+    with pytest.raises(ServerError):
+        await auth_client.app_info()

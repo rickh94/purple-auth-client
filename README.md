@@ -35,11 +35,28 @@ result = await auth_client.submit_code("test@example.com", "12345678")
 
 ### /token/verify/
 
+Send idToken to server for verification.
+
+```python
+result = await auth_client.verify_token_remote(token_submitted_by_client)
+```
 
 ### /token/refresh/
 
+Request a new ID Token from the server using a refresh token
+
+```python
+new_token = await auth_client.refresh(refresh_token_from_client)
+```
+
 
 ### /app/
+
+Get more info about this app from the server.
+
+```python
+info = await auth_client.app_info()
+```
 
 
 ### /magic/request/
