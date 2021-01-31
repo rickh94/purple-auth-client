@@ -9,6 +9,6 @@ before_install:
   - pip install docker-compose
 install:
   - poetry install
-  - cd ./integragion-test && bash setup.sh && cd $OLDPWD
+  - cd ./integration-test && bash setup.sh && cd $OLDPWD
 script: poetry run pytest --cov=ricks_auth_service_client
 after_success: bash <(curl -s https://codecov.io/bash)
