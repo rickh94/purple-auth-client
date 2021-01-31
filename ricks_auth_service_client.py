@@ -1,6 +1,9 @@
 from typing import Dict
 
 import aiohttp
+from jwcrypto import jwk
+import python_jwt as jwt
+from jwcrypto.jws import InvalidJWSObject, InvalidJWSSignature
 
 ALLOWED_FLOWS = ["otp", "magic"]
 
@@ -49,7 +52,9 @@ class AuthClient:
         :param host: hostname of the auth server without 'https://'
         :param app_id: The unique ID of the app to authenticate against.
         """
-        self.host = "https://" + host
+        self.host = host
+        if "http" not in host:
+            self.host = "https://" + self.host
         self.app_id = app_id
         self._public_key = None
 
@@ -138,6 +143,41 @@ class AuthClient:
             async with session.get(f"{self.host}/app/{self.app_id}") as response:
                 _check_response(response)
                 return await response.json()
+
+    async def verify(self, id_token: str) -> Dict[str, dict]:
+        """Request the server to verify an idToken for you.
+        :param id_token: JWT idToken from client
+
+        :returns: Dict of headers and claims from the verified JWT
+        :raises ValidationError: If the request was invalid in some way
+        :raises AuthenticationFailure: If the token could not be verified
+        :raises AppNotFound: Not found from server, the app does not exist.
+        :raises ServerError: The server experienced an error.
+        """
+        if not self._public_key:
+            self._public_key = await self._get_public_key()
+        try:
+            headers, claims = jwt.verify_jwt(
+                id_token, self._public_key, allowed_algs=["ES256"]
+            )
+        except (
+            jwt._JWTError,
+            UnicodeDecodeError,
+            InvalidJWSObject,
+            InvalidJWSSignature,
+            ValueError,
+        ):
+            raise AuthenticationFailure
+        return {"headers": headers, "claims": claims}
+
+    async def _get_public_key(self) -> jwk.JWK:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"{self.host}/app/public_key/{self.app_id}"
+            ) as response:
+                _check_response(response)
+                data = await response.json()
+                return jwk.JWK(**data)
 
 
 async def _perform_post(url: str, body: dict):

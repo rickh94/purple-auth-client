@@ -1,6 +1,10 @@
+import datetime
+
 import pytest
 from aioresponses import aioresponses
 from faker import Faker
+from jwcrypto import jwk
+import python_jwt as jwt
 
 from ricks_auth_service_client import (
     AuthClient,
@@ -47,6 +51,39 @@ def fake_token():
 @pytest.fixture
 def fake_refresh_token():
     return "this-is-a-fake-refresh-token"
+
+
+@pytest.fixture
+def fake_key(mock_aioresponse, auth_client):
+    _key = jwk.JWK.generate(kty="EC", size=2048)
+    mock_aioresponse.get(
+        f"{auth_client.host}/app/public_key/{auth_client.app_id}",
+        status=200,
+        payload=_key.export_public(as_dict=True),
+    )
+    return _key
+
+
+@pytest.fixture
+def valid_token(fake_email, fake_key):
+    return jwt.generate_jwt(
+        {"sub": fake_email}, fake_key, "ES256", datetime.timedelta(minutes=30)
+    )
+
+
+@pytest.fixture
+def invalid_token(fake_email):
+    other_key = jwk.JWK.generate(kty="EC", size=2048)
+    return jwt.generate_jwt(
+        {"sub": fake_email}, other_key, "ES256", datetime.timedelta(minutes=30)
+    )
+
+
+@pytest.fixture
+def expired_token(fake_email, fake_key):
+    return jwt.generate_jwt(
+        {"sub": fake_email}, fake_key, "ES256", datetime.timedelta(minutes=0)
+    )
 
 
 def test_create():
@@ -483,3 +520,22 @@ async def test_app_info_server_error(mock_aioresponse, auth_client):
 
     with pytest.raises(ServerError):
         await auth_client.app_info()
+
+
+@pytest.mark.asyncio
+async def test_verify_token_success(auth_client, fake_key, valid_token, fake_email):
+    result = await auth_client.verify(valid_token)
+
+    assert result["claims"]["sub"] == fake_email
+
+
+@pytest.mark.asyncio
+async def test_verify_token_failure(auth_client, fake_key, invalid_token):
+    with pytest.raises(AuthenticationFailure):
+        await auth_client.verify(invalid_token)
+
+
+@pytest.mark.asyncio
+async def test_verify_token_expired(auth_client, fake_key, expired_token):
+    with pytest.raises(AuthenticationFailure):
+        await auth_client.verify(expired_token)
