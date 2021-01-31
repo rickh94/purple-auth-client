@@ -7,6 +7,7 @@ python:
 before_install:
   - pip install poetry
   - pip install docker-compose
+  - echo "$DOCKER_TOKEN" | docker login -u rickh94 --password-stdin
 install:
   - poetry install
   - cd ./integration-test && bash setup.sh && cd $OLDPWD
