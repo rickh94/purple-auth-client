@@ -539,3 +539,111 @@ async def test_verify_token_failure(auth_client, fake_key, invalid_token):
 async def test_verify_token_expired(auth_client, fake_key, expired_token):
     with pytest.raises(AuthenticationFailure):
         await auth_client.verify(expired_token)
+
+
+@pytest.mark.asyncio
+async def test_delete_refresh_token(
+    mock_aioresponse, auth_client, fake_refresh_token, fake_token
+):
+    mock_aioresponse.delete(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}/{fake_refresh_token}",
+        status=204,
+    )
+
+    await auth_client.delete_refresh_token(fake_token, fake_refresh_token)
+
+    request_args = list(mock_aioresponse.requests.values())[0][0].kwargs
+    print(request_args)
+    assert request_args["headers"]["Authorization"] == f"Bearer {fake_token}"
+
+
+@pytest.mark.asyncio
+async def test_delete_refresh_token_unauthorized(
+    mock_aioresponse, auth_client, fake_refresh_token, fake_token
+):
+    mock_aioresponse.delete(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}/{fake_refresh_token}",
+        status=401,
+    )
+
+    with pytest.raises(AuthenticationFailure):
+        await auth_client.delete_refresh_token(fake_token, fake_refresh_token)
+
+
+@pytest.mark.asyncio
+async def test_delete_refresh_token_not_found(
+    mock_aioresponse, auth_client, fake_refresh_token, fake_token
+):
+    mock_aioresponse.delete(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}/{fake_refresh_token}",
+        status=404,
+    )
+
+    with pytest.raises(AppNotFound):
+        await auth_client.delete_refresh_token(fake_token, fake_refresh_token)
+
+
+@pytest.mark.asyncio
+async def test_delete_refresh_token_server_error(
+    mock_aioresponse, auth_client, fake_refresh_token, fake_token
+):
+    mock_aioresponse.delete(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}/{fake_refresh_token}",
+        status=500,
+    )
+
+    with pytest.raises(ServerError):
+        await auth_client.delete_refresh_token(fake_token, fake_refresh_token)
+
+
+@pytest.mark.asyncio
+async def test_delete_all_refresh_tokens(mock_aioresponse, auth_client, fake_token):
+    mock_aioresponse.delete(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=204,
+    )
+
+    await auth_client.delete_all_refresh_tokens(fake_token)
+
+    request_args = list(mock_aioresponse.requests.values())[0][0].kwargs
+    print(request_args)
+    assert request_args["headers"]["Authorization"] == f"Bearer {fake_token}"
+
+
+@pytest.mark.asyncio
+async def test_delete_all_refresh_tokens_not_found(
+    mock_aioresponse, auth_client, fake_token
+):
+    mock_aioresponse.delete(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=404,
+    )
+
+    with pytest.raises(AppNotFound):
+        await auth_client.delete_all_refresh_tokens(fake_token)
+
+
+@pytest.mark.asyncio
+async def test_delete_all_refresh_tokens_server_error(
+    mock_aioresponse, auth_client, fake_token
+):
+    mock_aioresponse.delete(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=500,
+    )
+
+    with pytest.raises(ServerError):
+        await auth_client.delete_all_refresh_tokens(fake_token)
+
+
+@pytest.mark.asyncio
+async def test_delete_all_refresh_tokens_unauthorized(
+    mock_aioresponse, auth_client, fake_token
+):
+    mock_aioresponse.delete(
+        f"{auth_client.host}/token/refresh/{auth_client.app_id}",
+        status=401,
+    )
+
+    with pytest.raises(AuthenticationFailure):
+        await auth_client.delete_all_refresh_tokens(fake_token)

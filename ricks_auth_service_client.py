@@ -1,4 +1,5 @@
 from typing import Dict
+from urllib.parse import quote_plus
 
 import aiohttp
 from jwcrypto import jwk
@@ -33,7 +34,7 @@ class InvalidAuthFlow(AuthClientError):
 
 
 def _check_response(response):
-    if response.status == 200:
+    if 200 <= response.status < 300:
         return
     if response.status == 404:
         raise AppNotFound
@@ -178,6 +179,43 @@ class AuthClient:
                 _check_response(response)
                 data = await response.json()
                 return jwk.JWK(**data)
+
+    async def delete_refresh_token(self, id_token: str, refresh_token: str):
+        """
+        Delete a refresh token (logout)
+
+        :param id_token: ID token of the user
+        :param refresh_token: the token to delete
+        :return: None
+        :raises ValidationError: If the request was invalid in some way
+        :raises AuthenticationFailure: If the token could not be verified
+        :raises AppNotFound: Not found from server, the app does not exist.
+        :raises ServerError: The server experienced an error.
+        """
+        async with aiohttp.ClientSession() as session:
+            async with session.delete(
+                f"{self.host}/token/refresh/{self.app_id}/{quote_plus(refresh_token)}",
+                headers={"Authorization": f"Bearer {id_token}"},
+            ) as response:
+                _check_response(response)
+
+    async def delete_all_refresh_tokens(self, id_token: str):
+        """
+        Delete all a user's refresh tokens (logout everywhere)
+
+        :param id_token: User's ID token
+        :return: None
+        :raises ValidationError: If the request was invalid in some way
+        :raises AuthenticationFailure: If the token could not be verified
+        :raises AppNotFound: Not found from server, the app does not exist.
+        :raises ServerError: The server experienced an error.
+        """
+        async with aiohttp.ClientSession() as session:
+            async with session.delete(
+                f"{self.host}/token/refresh/{self.app_id}",
+                headers={"Authorization": f"Bearer {id_token}"},
+            ) as response:
+                _check_response(response)
 
 
 async def _perform_post(url: str, body: dict):
