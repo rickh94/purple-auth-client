@@ -161,8 +161,9 @@ class AuthClient:
             headers, claims = jwt.verify_jwt(
                 id_token, self._public_key, allowed_algs=["ES256"]
             )
+        except jwt._JWTError as e:
+            raise AuthenticationFailure(str(e))
         except (
-            jwt._JWTError,
             UnicodeDecodeError,
             InvalidJWSObject,
             InvalidJWSSignature,

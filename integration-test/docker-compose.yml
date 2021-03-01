@@ -22,6 +22,8 @@ services:
       - MAILGUN_KEY=fake-mailgun-key
       - FERNET_KEY=QwU0xmHBPLl7lY2aSVgiWE0GiJDn/ReFx/KWDjClgrA=
       - HOST=http://localhost:25898
+    volumes:
+      - socks:/socks
     depends_on:
       - mongo-test
       - redis-test
@@ -50,6 +52,7 @@ services:
       - "25898:80"
     volumes:
       - ./data/nginx:/etc/nginx/conf.d
+      - socks:/socks
     depends_on:
       - backend
 
@@ -60,3 +63,4 @@ services:
 
 volumes:
   test-data:
+  socks:

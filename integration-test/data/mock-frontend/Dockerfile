@@ -1,6 +1,6 @@
 FROM python:3.9
 
-RUN pip install flask gunicorn python_jwt
+RUN pip install flask gunicorn python_jwt jwcrypto six
 
 ADD ./app.py .
 
