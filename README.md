@@ -72,4 +72,13 @@ result = await auth_client.authenticate(
 
 ## Local Verification
 
+Verify and decode an ID Token on directly in the app without having to
+call out every time
+
+```python
+result = await auth_client.verify(id_token_from_client)
+# {"headers": {"alg": "ES256", "type": "JWT"}, "claims": {"sub": "user@email.com", "exp": "test@example.com"}
+# etc.
+
+```
 
