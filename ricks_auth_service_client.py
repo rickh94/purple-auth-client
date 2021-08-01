@@ -125,6 +125,8 @@ class AuthClient:
         :raises AppNotFound: Not found from server, the app does not exist.
         :raises ServerError: The server experienced an error.
         """
+        if not refresh_token:
+            raise ValueError("Refresh Token is Required")
         data = await _perform_post(
             f"{self.host}/token/refresh/{self.app_id}", {"refreshToken": refresh_token}
         )
@@ -155,6 +157,8 @@ class AuthClient:
         :raises AppNotFound: Not found from server, the app does not exist.
         :raises ServerError: The server experienced an error.
         """
+        if not id_token:
+            raise ValueError("ID Token is required")
         if not self._public_key:
             self._public_key = await self._get_public_key()
         try:

@@ -647,3 +647,14 @@ async def test_delete_all_refresh_tokens_unauthorized(
 
     with pytest.raises(AuthenticationFailure):
         await auth_client.delete_all_refresh_tokens(fake_token)
+
+
+@pytest.mark.asyncio
+async def test_no_id_token_raises_value_error(auth_client):
+    with pytest.raises(ValueError):
+        await auth_client.verify(None)
+
+@pytest.mark.asyncio
+async def test_no_refresh_token_raises_value_error(auth_client):
+    with pytest.raises(ValueError):
+        await auth_client.refresh(None)
