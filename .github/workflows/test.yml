@@ -29,10 +29,10 @@ jobs:
         run: docker-compose -f integration-test/docker-compose.yml up -d
 
       - name: Create test app 1
-        run: docker-compose -f intergration-test/docker-compose.yml run --rm backend sh -c 'python manage.py createapp App -u http://localhost:23801/magic --app-id 123456 -r'
+        run: docker-compose -f integration-test/docker-compose.yml run --rm backend sh -c 'python manage.py createapp App -u http://localhost:23801/magic --app-id 123456 -r'
 
       - name: Create test app 2
-        run: docker-compose -f intergration-test/docker-compose.yml run --rm backend sh -c 'python manage.py createapp App -u http://localhost:23801/magic --app-id 2 -r'
+        run: docker-compose -f integration-test/docker-compose.yml run --rm backend sh -c 'python manage.py createapp App2 -u http://localhost:23801/magic --app-id 2 -r'
 
       - name: run tests
         run: poetry run pytest --cov=purple_auth_client
