@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-latest]
-        version: ["3.10"]
+        version: [3.9]
 
     steps:
       - uses: actions/checkout@v2
@@ -39,9 +39,8 @@ jobs:
 
       - uses: codecov/codecov-action@v2
 
-      - name: Add pypi token
-        run: poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-
       - name: Publish
         run: poetry publish --build
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
