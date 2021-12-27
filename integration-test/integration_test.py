@@ -10,7 +10,7 @@ import requests
 from jwcrypto import jwk
 import python_jwt as jwt
 
-from ricks_auth_service_client import AuthClient, AuthenticationFailure
+from purple_auth_client import AuthClient, AuthenticationFailure
 
 
 @pytest.fixture

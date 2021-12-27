@@ -6,7 +6,7 @@ from faker import Faker
 from jwcrypto import jwk
 import python_jwt as jwt
 
-from ricks_auth_service_client import (
+from purple_auth_client import (
     AuthClient,
     AppNotFound,
     ServerError,
@@ -19,7 +19,7 @@ from ricks_auth_service_client import (
 
 @pytest.fixture
 def auth_client():
-    return AuthClient("auth.example.com", "123456")
+    return AuthClient("http://auth.example.com", "123456")
 
 
 @pytest.fixture

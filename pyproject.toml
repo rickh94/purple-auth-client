@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "ricks-auth-service-client"
+name = "purple-auth-client"
 version = "0.1.2"
-description = "Client library for my custom auth service"
+description = "Client library for Purple Auth"
 authors = ["Rick Henry <rickhenry@rickhenry.dev>"]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.6"
-aiohttp = "^3.7.3"
+aiohttp = "^3.8.1"
 python-jwt = "^3.3.0"
 
 [tool.poetry.dev-dependencies]

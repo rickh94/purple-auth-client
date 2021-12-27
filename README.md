@@ -1,16 +1,16 @@
-# ricks_auth_service_client
+# Purple Auth Client
 
-An async python client for my custom auth microservice.
+An async python client for my "Purple Auth" microservice.
 
 ## Routes Covered
 
 ### initialization
 
 ```python
-from ricks_auth_service_client import AuthClient
+from purple_auth_client import AuthClient
 
 auth_client = AuthClient(
-    host="https://auth.example.com",
+    host="https://purpleauth.com",
     app_id="37f9a26d-03c8-4b7c-86ad-132bb82e8e38"
 )
 ```
