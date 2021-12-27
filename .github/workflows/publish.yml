@@ -40,7 +40,9 @@ jobs:
       - uses: codecov/codecov-action@v2
 
       - name: Publish
-        run: poetry publish --build
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
