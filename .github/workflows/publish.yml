@@ -1,0 +1,46 @@
+name: Tests
+
+on: [release]
+
+jobs:
+  build:
+    runs-on: ${{matrix.platform}}
+
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+        version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.version }}
+
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2.0.0
+
+      - name: Poetry install
+        run: poetry install
+
+      - name: Compose Up
+        run: docker-compose -f integration-test/docker-compose.yml up -d
+
+      - name: Create test app 1
+        run: docker-compose -f integration-test/docker-compose.yml run --rm backend sh -c 'python manage.py createapp App -u http://localhost:23801/magic --app-id 123456 -r'
+
+      - name: Create test app 2
+        run: docker-compose -f integration-test/docker-compose.yml run --rm backend sh -c 'python manage.py createapp App2 -u http://localhost:23801/magic --app-id 2 -r'
+
+      - name: run tests
+        run: poetry run pytest --cov=purple_auth_client
+
+      - uses: codecov/codecov-action@v2
+
+      - name: Build and publish to pypi
+        uses: JRubrics/poetry-publish@v1.9
+        with:
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+
