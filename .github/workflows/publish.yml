@@ -1,4 +1,4 @@
-name: Tests
+name: Release
 
 on: [release]
 
@@ -39,8 +39,9 @@ jobs:
 
       - uses: codecov/codecov-action@v2
 
-      - name: Build and publish to pypi
-        uses: JRubrics/poetry-publish@v1.9
-        with:
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
+      - name: Add pypi token
+        run: poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+
+      - name: Publish
+        run: poetry publish --build
 
