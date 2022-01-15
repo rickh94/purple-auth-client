@@ -2,7 +2,7 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 3.6 (ricks-auth-service-client-KcCEf1cM-py3.6)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.10 (purple-auth-client-TrOulFXy-py3.10)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

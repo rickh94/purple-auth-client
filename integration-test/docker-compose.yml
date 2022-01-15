@@ -7,7 +7,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: testpass
 
   backend:
-    image: rickh94/auth-service:latest
+    image: rickh94/purple-auth:latest
     environment:
       - DB_HOST=mongo-test
       - REDIS_HOST=redis-test
@@ -21,9 +21,8 @@ services:
       - FROM_ADDRESS=test@mg.example.com
       - MAILGUN_KEY=fake-mailgun-key
       - FERNET_KEY=QwU0xmHBPLl7lY2aSVgiWE0GiJDn/ReFx/KWDjClgrA=
-      - HOST=http://localhost:25898
-    volumes:
-      - socks:/socks
+      - FQDN_HOST=http://localhost:25898
+      - WEBMASTER_EMAIL=test@example.com
     depends_on:
       - mongo-test
       - redis-test
