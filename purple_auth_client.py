@@ -180,7 +180,8 @@ class AuthClient:
     async def _get_public_key(self) -> jwk.JWK:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                f"{self.host}/app/public_key/{self.app_id}"
+                f"{self.host}/app/public_key/{self.app_id}",
+                headers={"Authorization": f"Bearer {self.api_key}"}
             ) as response:
                 _check_response(response)
                 data = await response.json()
