@@ -11,7 +11,8 @@ from purple_auth_client import AuthClient
 
 auth_client = AuthClient(
     host="https://purpleauth.com",
-    app_id="37f9a26d-03c8-4b7c-86ad-132bb82e8e38"
+    app_id="37f9a26d-03c8-4b7c-86ad-132bb82e8e38",
+    api_key="[Key provided by purple auth portal]"
 )
 ```
 

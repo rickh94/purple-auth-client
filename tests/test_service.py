@@ -19,7 +19,7 @@ from purple_auth_client import (
 
 @pytest.fixture
 def auth_client():
-    return AuthClient("http://auth.example.com", "123456")
+    return AuthClient("http://auth.example.com", "123456", "testkey")
 
 
 @pytest.fixture
@@ -87,7 +87,7 @@ def expired_token(fake_email, fake_key):
 
 
 def test_create():
-    client = AuthClient("localhost", "12345")
+    client = AuthClient("localhost", "12345", "testkey")
     assert client.host == "https://localhost"
     assert client.app_id == "12345"
     assert client._public_key is None
@@ -653,6 +653,7 @@ async def test_delete_all_refresh_tokens_unauthorized(
 async def test_no_id_token_raises_value_error(auth_client):
     with pytest.raises(ValueError):
         await auth_client.verify(None)
+
 
 @pytest.mark.asyncio
 async def test_no_refresh_token_raises_value_error(auth_client):

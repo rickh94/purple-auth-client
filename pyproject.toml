@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "purple-auth-client"
-version = "1.0.0"
+version = "1.0.1"
 description = "Client library for Purple Auth"
 authors = ["Rick Henry <rickhenry@rickhenry.dev>"]
 license = "MIT"

@@ -15,12 +15,12 @@ from purple_auth_client import AuthClient, AuthenticationFailure
 
 @pytest.fixture
 def auth_client():
-    return AuthClient("http://localhost:25898", "123456")
+    return AuthClient("http://localhost:25898", "123456", "testkey")
 
 
 @pytest.fixture
 def auth_client2():
-    return AuthClient("http://localhost:25898", "2")
+    return AuthClient("http://localhost:25898", "2", "testkey")
 
 
 def correct_dir(func):

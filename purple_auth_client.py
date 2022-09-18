@@ -47,7 +47,7 @@ def _check_response(response):
 
 
 class AuthClient:
-    def __init__(self, host: str, app_id: str):
+    def __init__(self, host: str, app_id: str, api_key: str):
         """Create the auth client objects
 
         :param host: hostname of the auth server without 'https://'
@@ -57,6 +57,7 @@ class AuthClient:
         if "http" not in host:
             self.host = "https://" + self.host
         self.app_id = app_id
+        self.api_key = api_key
         self._public_key = None
 
     async def authenticate(self, email, flow="otp") -> str:
@@ -71,7 +72,7 @@ class AuthClient:
         """
         if flow not in ALLOWED_FLOWS:
             raise InvalidAuthFlow
-        return await _perform_post(
+        return await self._perform_post(
             f"{self.host}/{flow}/request/{self.app_id}", {"email": email}
         )
 
@@ -87,7 +88,7 @@ class AuthClient:
         :raises ValidationError: if something is wrong with the request data.
         :raises AuthenticationFailure: if the email code combination doesn't authenticate.
         """
-        data = await _perform_post(
+        data = await self._perform_post(
             f"{self.host}/otp/confirm/{self.app_id}", {"email": email, "code": code}
         )
         try:
@@ -108,7 +109,7 @@ class AuthClient:
         :raises AppNotFound: Not found from server, the app does not exist.
         :raises ServerError: The server experienced an error.
         """
-        data = await _perform_post(
+        data = await self._perform_post(
             f"{self.host}/token/verify/{self.app_id}", {"idToken": id_token}
         )
         if not data or "headers" not in data or "claims" not in data:
@@ -127,7 +128,7 @@ class AuthClient:
         """
         if not refresh_token:
             raise ValueError("Refresh Token is Required")
-        data = await _perform_post(
+        data = await self._perform_post(
             f"{self.host}/token/refresh/{self.app_id}", {"refreshToken": refresh_token}
         )
         try:
@@ -223,8 +224,8 @@ class AuthClient:
                 _check_response(response)
 
 
-async def _perform_post(url: str, body: dict):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=body) as response:
-            _check_response(response)
-            return await response.json()
+    async def _perform_post(self, url: str, body: dict):
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=body, headers={"Authorization": f"Bearer {self.api_key}"}) as response:
+                _check_response(response)
+                return await response.json()
