@@ -6,9 +6,9 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import python_jwt as jwt
 import requests
 from jwcrypto import jwk
-import python_jwt as jwt
 
 from purple_auth_client import AuthClient, AuthenticationFailure
 
@@ -120,8 +120,14 @@ async def test_magic_flow(auth_client):
     assert "Click or copy this link to sign in:" in data["text"]
     assert "It will expire in " in data["text"]
     assert "minutes." in data["text"]
+    print(data["text"])
 
-    found = re.search(r"Click or copy this link to sign in: (.*)\. ", data["text"])
+    found = re.search(
+        r"""Click or copy this link to sign in:
+(.*)
+It""",
+        data["text"],
+    )
     link = found.group(1)
     response = requests.get(link)
 

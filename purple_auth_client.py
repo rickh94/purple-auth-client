@@ -231,4 +231,7 @@ class AuthClient:
                     "Authorization": f"Bearer {self.api_key}"}
             ) as response:
                 _check_response(response)
-                return await response.json()
+                if response.headers.get("Content-Type") == "application/json":
+                    return await response.json()
+                else:
+                    return await response.text()
