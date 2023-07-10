@@ -1,10 +1,14 @@
-# Purple Auth Client
+# Purple Auth Client (Python)
 
-An async python client for my "Purple Auth" microservice.
+An async python client for my ["Purple Auth"
+microservice](https://purpleauth.com).
 
-## Routes Covered
 
-### initialization
+### Initialization
+
+Create an account and application on [purpelauth.com](https://purpleauth.com),
+then initialize the client with those values. You should store the api key in an
+environment variable, but the app id is a public value, not a secret.
 
 ```python
 from purple_auth_client import AuthClient
@@ -15,6 +19,11 @@ auth_client = AuthClient(
     api_key="[Key provided by purple auth portal]"
 )
 ```
+ 
+You will initially be limited to 500 authentications per app, but you can email
+me to have that increased.
+
+## Routes Covered
 
 ### /otp/request/
 
@@ -41,6 +50,9 @@ Send idToken to server for verification.
 ```python
 result = await auth_client.verify_token_remote(token_submitted_by_client)
 ```
+
+You should prefer to verify tokens locally using the `verify` method, but this
+is covered as a convenience and sanity check.
 
 ### /token/refresh/
 

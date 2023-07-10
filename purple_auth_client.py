@@ -2,8 +2,8 @@ from typing import Dict
 from urllib.parse import quote_plus
 
 import aiohttp
-from jwcrypto import jwk
 import python_jwt as jwt
+from jwcrypto import jwk
 from jwcrypto.jws import InvalidJWSObject, InvalidJWSSignature
 
 ALLOWED_FLOWS = ["otp", "magic"]
@@ -149,7 +149,7 @@ class AuthClient:
                 return await response.json()
 
     async def verify(self, id_token: str) -> Dict[str, dict]:
-        """Request the server to verify an idToken for you.
+        """Verify a token locally without making a web request
         :param id_token: JWT idToken from client
 
         :returns: Dict of headers and claims from the verified JWT
@@ -181,7 +181,7 @@ class AuthClient:
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 f"{self.host}/app/public_key/{self.app_id}",
-                headers={"Authorization": f"Bearer {self.api_key}"}
+                headers={"Authorization": f"Bearer {self.api_key}"},
             ) as response:
                 _check_response(response)
                 data = await response.json()
@@ -224,9 +224,11 @@ class AuthClient:
             ) as response:
                 _check_response(response)
 
-
     async def _perform_post(self, url: str, body: dict):
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=body, headers={"Authorization": f"Bearer {self.api_key}"}) as response:
+            async with session.post(
+                url, json=body, headers={
+                    "Authorization": f"Bearer {self.api_key}"}
+            ) as response:
                 _check_response(response)
                 return await response.json()
